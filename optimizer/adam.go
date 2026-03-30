@@ -42,8 +42,8 @@ func NewAdam(cfg AdamConfig, params []*tensor.Tensor) *Adam {
 
 	for i, p := range params {
 		shape := p.Shape()
-		m[i] = tensor.ZerosTensor(shape)
-		v[i] = tensor.ZerosTensor(shape)
+		m[i] = tensor.Zeros(shape)
+		v[i] = tensor.Zeros(shape)
 	}
 
 	return &Adam{
@@ -145,8 +145,8 @@ func (opt *Adam) StepWithLR(params, grads []*tensor.Tensor, lr float64) {
 func (opt *Adam) Reset() {
 	for i := range opt.m {
 		shape := opt.m[i].Shape()
-		opt.m[i] = tensor.ZerosTensor(shape)
-		opt.v[i] = tensor.ZerosTensor(shape)
+		opt.m[i] = tensor.Zeros(shape)
+		opt.v[i] = tensor.Zeros(shape)
 	}
 	opt.step = 0
 }

@@ -208,11 +208,11 @@ func (m *GPT) multiHeadAttention(q *tensor.Tensor, keys, values []*tensor.Tensor
 		}
 
 		// Stack logits and apply softmax
-		logitsStack := tensor.StackTensors(attnLogits, 0)
+		logitsStack := tensor.Stack(attnLogits, 0)
 		weights := tensor.Softmax(logitsStack)
 
 		// Weighted sum of values
-		headOut := tensor.ZerosTensor([]int{headDim})
+		headOut := tensor.Zeros([]int{headDim})
 		for t := range vHeads {
 			weightSlice := weights.Slice([]int{t}, []int{t + 1}).Reshape(1)
 			scaledV := vHeads[t].Mul(weightSlice)
@@ -223,7 +223,7 @@ func (m *GPT) multiHeadAttention(q *tensor.Tensor, keys, values []*tensor.Tensor
 	}
 
 	// Concatenate all heads
-	return tensor.ConcatTensors(headOutputs, 0)
+	return tensor.Concat(headOutputs, 0)
 }
 
 // mlpBlock applies the MLP (feed-forward) block.

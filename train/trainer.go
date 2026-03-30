@@ -185,7 +185,7 @@ func (t *Trainer) GetLoss(doc string) float64 {
 		probs := model.Softmax(logits)
 
 		// Get probability of target
-		probList, _ := probs.Data().ToList()
+		probList, _ := probs.ToList()
 		var prob float64
 		switch v := probList.(type) {
 		case []interface{}:

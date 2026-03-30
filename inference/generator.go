@@ -137,7 +137,7 @@ func (g *Generator) GenerateWithPrompt(prompt string) string {
 // sampleFromProbs samples a token ID from a probability distribution.
 func (g *Generator) sampleFromProbs(probs *tensor.Tensor) int {
 	// Convert probabilities to Go slice
-	probList, err := probs.Data().ToList()
+	probList, err := probs.ToList()
 	if err != nil {
 		// Fallback: return most likely token
 		return 0
@@ -211,7 +211,7 @@ func (g *Generator) GreedyDecode() string {
 
 // argmax returns the index of the maximum value.
 func (g *Generator) argmax(t *tensor.Tensor) int {
-	list, err := t.Data().ToList()
+	list, err := t.ToList()
 	if err != nil {
 		return 0
 	}

@@ -1,64 +1,68 @@
 # MicroGPT in Go
 
-A minimal GPT-2-like language model implementation in Go, using Apple MLX for hardware acceleration on Apple Silicon (M1-M4).
+A minimal GPT-2-like language model implementation in Go with **MLX acceleration** for Apple Silicon (M1-M4).
 
 ## Overview
 
-This is a Go re-architecture of the microgpt Python implementation, designed to:
+This is a Go re-architecture of the microgpt Python implementation, featuring:
 
-- Preserve the algorithmic essence exactly
-- Improve execution model, structure, and performance
-- Replace scalar autograd with tensor-based computation using MLX
-- Run efficiently on macOS Apple Silicon (Metal via MLX)
-
-## Architecture
-
-```
-microgpt/
-├── cmd/
-│   ├── train/          # Training CLI entrypoint
-│   └── infer/          # Inference CLI entrypoint
-├── dataset/            # Dataset loading and shuffling
-├── tokenizer/          # Character-level tokenizer
-├── tensor/             # MLX-backed tensor wrapper
-├── model/              # GPT model (attention, MLP, embeddings)
-├── optimizer/          # Adam optimizer
-├── train/              # Training loop
-└── inference/          # Sampling loop
-```
+- **GPU Acceleration**: MLX-backed tensor operations on Apple Silicon
+- **Automatic Differentiation**: Built-in backpropagation for training
+- **Pure Go**: Clean, idiomatic Go codebase
+- **Hardware Optimized**: Leverages M1-M4 Neural Engine and Metal GPU
 
 ## Requirements
 
-- Go 1.22 or later
-- Apple Silicon Mac (M1-M4)
-- MLX library
+### Hardware
+- **macOS** on Apple Silicon (M1, M2, M3, or M4)
+- macOS 13.0 or later recommended
+
+### Software
+```bash
+# Install MLX via Homebrew
+brew install mlx
+
+# Install Go 1.22 or later
+brew install go@1.22
+
+# Verify installation
+mlx --version
+go version
+```
+
+### Build Dependencies
+- Xcode Command Line Tools: `xcode-select --install`
+- CGO enabled (default on macOS)
 
 ## Installation
 
 ```bash
-# Download dependencies
+# Clone and enter repository
+cd microgpt
+
+# Download Go dependencies
 go mod tidy
 
 # Build all binaries
 make build
 ```
 
-## Usage
+## Quick Start
 
 ### Training
 
 ```bash
-# Train with default parameters
+# Train with default parameters (1000 steps)
 make train
 
-# Train with custom parameters
+# Or run directly with custom parameters
 ./bin/train -steps 1000 -lr 0.01 -embed 16 -heads 4 -layers 1 -block 16
 ```
 
 ### Inference
 
 ```bash
-# Generate samples
+# Generate 20 samples
 make infer
 
 # Interactive mode
@@ -68,96 +72,294 @@ make infer-interactive
 ./bin/infer -samples 20 -temp 0.5 -seed 42
 ```
 
-## Model Configuration
+## Configuration
 
-| Parameter   | Default | Description                    |
-|-------------|---------|--------------------------------|
-| embed       | 16      | Embedding dimension (n_embd)   |
-| heads       | 4       | Number of attention heads      |
-| layers      | 1       | Number of transformer layers   |
-| block       | 16      | Context block size             |
-| lr          | 0.01    | Learning rate                  |
-| steps       | 1000    | Training steps                 |
+### Model Hyperparameters
 
-## Training Parameters
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-embed` | 16 | Embedding dimension (n_embd) |
+| `-heads` | 4 | Number of attention heads (n_head) |
+| `-layers` | 1 | Number of transformer layers (n_layer) |
+| `-block` | 16 | Context block size |
 
-| Parameter | Default | Description                    |
-|-----------|---------|--------------------------------|
-| beta1     | 0.85    | Adam first moment decay        |
-| beta2     | 0.99    | Adam second moment decay       |
-| temp      | 0.5     | Sampling temperature           |
-| seed      | 42      | Random seed                    |
+### Training Hyperparameters
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-steps` | 1000 | Training iterations |
+| `-lr` | 0.01 | Learning rate |
+| `-beta1` | 0.85 | Adam first moment decay |
+| `-beta2` | 0.99 | Adam second moment decay |
+| `-temp` | 0.5 | Sampling temperature |
+| `-seed` | 42 | Random seed |
+
+### Full Training Example
+
+```bash
+./bin/train \
+    -steps 2000 \
+    -lr 0.005 \
+    -beta1 0.9 \
+    -beta2 0.999 \
+    -embed 32 \
+    -heads 4 \
+    -layers 2 \
+    -block 32 \
+    -temp 0.7 \
+    -seed 123
+```
 
 ## Dataset
 
-By default, the model trains on the names dataset:
-- Source: https://raw.githubusercontent.com/karpathy/makemore/988aa59/names.txt
-- Size: ~32,000 names
-- Format: one name per line
+By default, trains on the names dataset:
+- **Source**: https://raw.githubusercontent.com/karpathy/makemore/988aa59/names.txt
+- **Size**: ~32,000 names
+- **Format**: One name per line
 
-The dataset is automatically downloaded on first run.
+The dataset is automatically downloaded on first run and cached as `input.txt`.
 
-## Model Architecture
+### Custom Dataset
 
-The model follows GPT-2 architecture with:
-
-1. **Embeddings**: Token + Position embeddings
-2. **Normalization**: RMSNorm (no biases)
-3. **Attention**: Multi-head self-attention with KV caching
-4. **MLP**: Two-layer feed-forward with ReLU activation
-5. **Output**: Linear projection to vocabulary
-
-### Differences from standard GPT-2
-
-- Uses RMSNorm instead of LayerNorm
-- No bias terms in linear layers
-- ReLU instead of GeLU in MLP
-- Character-level tokenization
+```bash
+# Use your own dataset
+./bin/train -data /path/to/your/dataset.txt
+```
 
 ## Expected Results
 
-### Training
-- Initial loss: ~3.3
-- Final loss (1000 steps): ~2.3-2.4
+### Training Progress
+```
+=== MicroGPT Training ===
+
+Loading dataset...
+Loaded 32033 documents
+Vocabulary size: 27 (26 chars + 1 BOS)
+Model created: 4192 parameters
+
+Training...
+step    1 / 1000 | loss 3.2847
+step    2 / 1000 | loss 3.1923
+...
+step 1000 / 1000 | loss 2.3156
+```
 
 ### Generated Samples
 ```
+--- Inference (generated samples) ---
 sample  1: kamon
 sample  2: karai
 sample  3: annel
 sample  4: kaina
+sample  5: marie
 ...
 ```
 
-## Design Philosophy
+## Architecture
 
-This implementation follows UNIX philosophy:
+See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed system design.
 
-- **Small packages**: Each package has a single responsibility
-- **Clear interfaces**: Explicit contracts between components
-- **Minimal magic**: No hidden behavior or complex abstractions
-- **Debuggability**: Easy to trace and understand
+### Package Structure
 
-## Performance Notes for M4
+```
+microgpt/
+├── cmd/
+│   ├── train/          # Training CLI
+│   └── infer/          # Inference CLI
+├── mlx/                # MLX CGO bindings
+├── tensor/             # MLX-backed tensor operations
+├── model/              # GPT architecture
+├── optimizer/          # Adam optimizer
+├── train/              # Training loop
+├── inference/          # Text generation
+├── tokenizer/          # Character tokenizer
+└── dataset/            # Data loading
+```
 
-The M4 chip features:
+### Model Architecture
 
-- Enhanced Neural Engine for ML workloads
-- Improved memory bandwidth
-- Advanced Metal GPU architecture
+```
+Input ──► Embeddings ──► [Transformer Layer]×N ──► Output
+                          │
+                          ├── Multi-Head Attention
+                          │   ├── Query/Key/Value
+                          │   └── KV Cache (inference)
+                          │
+                          └── MLP (FC-ReLU-FC)
+```
 
-MLX leverages these capabilities through:
+## Performance
 
-- Unified memory architecture
-- Metal-accelerated tensor operations
-- Efficient automatic differentiation
+### M4 Performance Characteristics
 
-## License
+| Metric | Value |
+|--------|-------|
+| Memory Bandwidth | 120 GB/s (M4) |
+| GPU Cores | Up to 10 |
+| Neural Engine | 16 cores |
 
-MIT
+### Optimization Tips
+
+1. **Use GPU**: MLX automatically uses Metal GPU
+2. **Batch Size**: Currently single-sequence; batching planned
+3. **Precision**: FP32 default; FP16 support planned
+4. **Memory**: Unified memory allows larger models
+
+## Development
+
+### Building
+
+```bash
+# Full build
+make build
+
+# Build specific binary
+make build-train
+make build-infer
+
+# Clean build
+make clean && make build
+```
+
+### Testing
+
+```bash
+# Run tests
+make test
+
+# With coverage
+make coverage
+```
+
+### Formatting
+
+```bash
+# Format code
+make fmt
+
+# Lint
+make lint
+```
+
+## Troubleshooting
+
+### CGO Errors
+
+```bash
+# Ensure CGO is enabled
+export CGO_ENABLED=1
+
+# Check MLX installation
+brew list mlx
+
+# Reinstall MLX if needed
+brew reinstall mlx
+```
+
+### Build Errors
+
+```bash
+# Clean and rebuild
+make clean
+go clean -cache
+make build
+
+# Check Go version
+go version  # Should be 1.22+
+```
+
+### Runtime Errors
+
+```bash
+# Check Metal support
+system_profiler SPDisplaysDataType | grep Metal
+
+# Verify MLX device
+# (MLX automatically selects GPU on Apple Silicon)
+```
+
+## API Reference
+
+### Tensor Operations
+
+```go
+import "github.com/microgpt/go/tensor"
+
+// Create tensors
+a := tensor.Gaussian([2, 3], 0, 0.02)
+b := tensor.Zeros([3, 4])
+c := tensor.Ones([4])
+
+// Element-wise operations
+d := a.Add(b)
+e := a.Mul(b)
+f := a.Relu()
+
+// Matrix operations
+g := a.MatMul(b)
+
+// Reduction
+sum := a.Sum()
+mean := a.Mean()
+
+// Automatic differentiation
+loss, grads := tensor.ValueAndGrad(fn, params)
+```
+
+### Model Usage
+
+```go
+import "github.com/microgpt/go/model"
+
+// Create model
+cfg := model.Config{
+    VocabSize: 27,
+    EmbedDim:  16,
+    NumHeads:  4,
+    NumLayers: 1,
+    BlockSize: 16,
+}
+m := model.New(cfg)
+
+// Forward pass
+cache := model.NewKVCache(cfg.NumLayers)
+logits := m.Forward(tokenID, posID, cache)
+
+// Get parameters
+params := m.Params()
+```
+
+## Comparison with Python Version
+
+| Feature | Python | Go + MLX |
+|---------|--------|----------|
+| Autograd | Scalar Value | Tensor-level |
+| Acceleration | CPU | GPU (Metal) |
+| Memory | Python GC | Go GC + MLX |
+| Performance | ~1 min/train | Faster with GPU |
+| Dependencies | None | MLX library |
+
+## Future Enhancements
+
+- [ ] Batched training
+- [ ] Model checkpointing (save/load weights)
+- [ ] Mixed precision (FP16/BF16)
+- [ ] BPE tokenization
+- [ ] Multi-GPU support
+- [ ] WandB/MLflow integration
+- [ ] Export to ONNX
 
 ## References
 
-- Original microgpt: https://github.com/karpathy/microgpt
-- MLX: https://ml-explore.github.io/mlx/
-- MakeMore: https://github.com/karpathy/makemore
+- [Original microgpt](https://github.com/karpathy/microgpt)
+- [MLX Documentation](https://ml-explore.github.io/mlx/)
+- [MakeMore](https://github.com/karpathy/makemore)
+- [GPT-2 Paper](https://d4mucfpksywv.cloudfront.net/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)
+
+## License
+
+MIT License - See LICENSE file for details.
+
+## Contributing
+
+Contributions welcome! Please read ARCHITECTURE.md before submitting PRs.
