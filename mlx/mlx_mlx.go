@@ -20,13 +20,10 @@ package mlx
 
 /*
 #cgo darwin CFLAGS: -I/opt/homebrew/include
-#cgo darwin LDFLAGS: -L/opt/homebrew/lib -lmlx -framework Foundation -framework Metal -framework Accelerate
 
-#include <stdlib.h>
-
-// MLX Python library doesn't expose a standalone C API.
-// When MLX C API becomes available, include headers here:
-// #include <mlx/c/array.h>
+// Note: MLX Python library doesn't expose a standalone C API.
+// We only link against macOS frameworks for Metal/Accelerate support.
+// When MLX C API becomes available, add: -lmlx
 */
 import "C"
 

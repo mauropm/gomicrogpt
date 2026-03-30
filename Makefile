@@ -16,6 +16,7 @@ INFER_BINARY := $(BINARY_DIR)/infer
 # Note: MLX Homebrew package is Python-based and doesn't include a standalone C library.
 # The -tags=mlx flag enables MLX mode status reporting.
 # Tensor operations use optimized pure Go implementation.
+# Metal/Accelerate frameworks provide hardware acceleration on Apple Silicon.
 MLX_TAGS := mlx
 MLX_CGO_LDFLAGS := -framework Foundation -framework Metal -framework Accelerate
 
