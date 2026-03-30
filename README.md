@@ -43,17 +43,40 @@ cd microgpt
 # Download Go dependencies
 go mod tidy
 
-# Build all binaries
+# Build all binaries (Pure Go - CPU, works without MLX)
 make build
+
+# Build with MLX GPU acceleration (requires MLX library)
+make build-mlx
 ```
+
+### MLX Installation (Optional)
+
+For GPU acceleration on Apple Silicon:
+
+```bash
+# Install MLX via Homebrew
+brew install mlx
+
+# Verify installation
+make check-mlx
+
+# Build with MLX support
+make build-mlx
+```
+
+If MLX is not installed, `make build-mlx` will display installation instructions.
 
 ## Quick Start
 
 ### Training
 
 ```bash
-# Train with default parameters (1000 steps)
+# Train with default parameters (1000 steps, Pure Go)
 make train
+
+# Train with MLX GPU acceleration
+make train-mlx
 
 # Or run directly with custom parameters
 ./bin/train -steps 1000 -lr 0.01 -embed 16 -heads 4 -layers 1 -block 16

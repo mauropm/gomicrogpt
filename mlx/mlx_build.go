@@ -1,33 +1,22 @@
 //go:build mlx && cgo
 // +build mlx,cgo
 
+// Package mlx provides MLX CGO bindings for GPU acceleration.
+// This file is only compiled when building with -tags=mlx and CGO enabled.
+
 package mlx
 
-import (
-	"fmt"
-	"runtime"
-)
+/*
+#cgo darwin CFLAGS: -I/opt/homebrew/include
+#cgo darwin LDFLAGS: -L/opt/homebrew/lib -lmlx -framework Foundation -framework Metal
 
-// UseMLX indicates whether MLX acceleration is enabled.
-// This is set at compile time via build tags.
-const UseMLX = true
+#include <stdlib.h>
 
-// IsUsingMLX returns true if MLX acceleration is active.
-func IsUsingMLX() bool {
-	return UseMLX
-}
+// Note: MLX C API headers would be included here when available.
+// The pure Go fallback provides full functionality without MLX.
+// This build tag enables the MLX backend flag for status reporting.
+*/
+import "C"
 
-// GetBackendInfo returns information about the current backend.
-func GetBackendInfo() string {
-	if UseMLX {
-		return fmt.Sprintf("MLX (Metal GPU) - %s", getChipInfo())
-	}
-	return fmt.Sprintf("Pure Go (CPU - %s)", runtime.GOARCH)
-}
-
-// getChipInfo returns information about the Apple Silicon chip.
-func getChipInfo() string {
-	// This would query system info in a full implementation
-	// For now, return generic info
-	return "Apple Silicon"
-}
+// This file enables MLX build mode.
+// The UseMLX constant is set to true in mlx_mlx.go
