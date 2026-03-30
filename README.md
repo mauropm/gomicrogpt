@@ -93,6 +93,7 @@ make infer-interactive
 | `-beta2` | 0.99 | Adam second moment decay |
 | `-temp` | 0.5 | Sampling temperature |
 | `-seed` | 42 | Random seed |
+| `-verbose` | false | Enable verbose output with backend info |
 
 ### Full Training Example
 
@@ -110,6 +111,31 @@ make infer-interactive
     -seed 123
 ```
 
+### Verbose Mode
+
+Use `-verbose` to see detailed backend information:
+
+```bash
+./bin/train -steps 100 -verbose
+```
+
+Example output:
+```
+=== MicroGPT Training ===
+
+Backend: Pure Go (CPU - arm64)
+MLX enabled: false
+
+Loading dataset...
+...
+```
+
+When MLX is installed and built with CGO:
+```
+Backend: MLX (Metal GPU) - Apple Silicon
+MLX enabled: true
+```
+
 ## Dataset
 
 By default, trains on the names dataset:
@@ -125,6 +151,16 @@ The dataset is automatically downloaded on first run and cached as `input.txt`.
 # Use your own dataset
 ./bin/train -data /path/to/your/dataset.txt
 ```
+
+### Inference Configuration
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-samples` | 20 | Number of samples to generate |
+| `-temp` | 0.5 | Sampling temperature (0.1-2.0) |
+| `-seed` | 42 | Random seed |
+| `-interactive` | false | Run in interactive mode |
+| `-verbose` | false | Enable verbose output |
 
 ## Expected Results
 

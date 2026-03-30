@@ -28,6 +28,23 @@ import (
 	"unsafe"
 )
 
+// UseMLX indicates whether MLX acceleration is enabled.
+// This is set at compile time via build tags.
+const UseMLX = false
+
+// IsUsingMLX returns true if MLX acceleration is active.
+func IsUsingMLX() bool {
+	return UseMLX
+}
+
+// GetBackendInfo returns information about the current backend.
+func GetBackendInfo() string {
+	if UseMLX {
+		return "MLX (Metal GPU)"
+	}
+	return fmt.Sprintf("Pure Go (CPU - %s)", runtime.GOARCH)
+}
+
 // Dtype represents the data type of an MLX array.
 type Dtype int
 

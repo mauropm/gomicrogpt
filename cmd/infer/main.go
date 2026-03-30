@@ -11,6 +11,7 @@ import (
 
 	"github.com/microgpt/go/dataset"
 	"github.com/microgpt/go/inference"
+	"github.com/microgpt/go/mlx"
 	"github.com/microgpt/go/model"
 	"github.com/microgpt/go/tensor"
 	"github.com/microgpt/go/tokenizer"
@@ -27,9 +28,17 @@ func main() {
 	temperature := flag.Float64("temp", 0.5, "sampling temperature")
 	samples := flag.Int("samples", 20, "number of samples to generate")
 	interactive := flag.Bool("interactive", false, "run in interactive mode")
+	verbose := flag.Bool("verbose", false, "enable verbose output including backend info")
 	flag.Parse()
 
 	fmt.Println("=== MicroGPT Inference ===")
+	fmt.Println()
+
+	// Show backend information
+	fmt.Printf("Backend: %s\n", mlx.GetBackendInfo())
+	if *verbose {
+		fmt.Printf("MLX enabled: %v\n", mlx.IsUsingMLX())
+	}
 	fmt.Println()
 
 	// Initialize RNG
@@ -59,6 +68,11 @@ func main() {
 	}
 	m := model.New(cfg)
 	fmt.Printf("Model created: %d parameters\n", m.NumParams())
+
+	if *verbose {
+		fmt.Printf("Model config: embed=%d, heads=%d, layers=%d, block=%d\n",
+			*embedDim, *numHeads, *numLayers, *blockSize)
+	}
 	fmt.Println()
 
 	// Create generator
@@ -70,10 +84,14 @@ func main() {
 	gen := inference.NewGenerator(genCfg, m, tok)
 
 	if *interactive {
-		runInteractive(gen, tok)
+		runInteractive(gen, tok, *verbose)
 	} else {
 		// Generate samples
-		fmt.Printf("--- Generating %d samples ---\n", *samples)
+		if *verbose {
+			fmt.Printf("--- Generating %d samples ---\n", *samples)
+		} else {
+			fmt.Println("--- Inference ---")
+		}
 		for i := 0; i < *samples; i++ {
 			sample := gen.Generate()
 			fmt.Printf("sample %2d: %s\n", i+1, sample)
@@ -82,15 +100,17 @@ func main() {
 }
 
 // runInteractive runs an interactive session for text generation.
-func runInteractive(gen *inference.Generator, tok *tokenizer.Tokenizer) {
+func runInteractive(gen *inference.Generator, tok *tokenizer.Tokenizer, verbose bool) {
 	fmt.Println("Interactive mode")
-	fmt.Println("Commands:")
-	fmt.Println("  <text>     - generate continuation of text")
-	fmt.Println("  :temp <n>  - set temperature (0.1-2.0)")
-	fmt.Println("  :seed <n>  - set random seed")
-	fmt.Println("  :sample    - generate a random sample")
-	fmt.Println("  :quit      - exit")
-	fmt.Println()
+	if verbose {
+		fmt.Println("Commands:")
+		fmt.Println("  <text>     - generate continuation of text")
+		fmt.Println("  :temp <n>  - set temperature (0.1-2.0)")
+		fmt.Println("  :seed <n>  - set random seed")
+		fmt.Println("  :sample    - generate a random sample")
+		fmt.Println("  :quit      - exit")
+		fmt.Println()
+	}
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
@@ -137,7 +157,11 @@ func runInteractive(gen *inference.Generator, tok *tokenizer.Tokenizer) {
 
 			case ":sample":
 				sample := gen.Generate()
-				fmt.Printf("Generated: %s\n", sample)
+				if verbose {
+					fmt.Printf("Generated: %s\n", sample)
+				} else {
+					fmt.Println(sample)
+				}
 
 			case ":quit", ":exit", ":q":
 				fmt.Println("Goodbye!")
@@ -149,7 +173,11 @@ func runInteractive(gen *inference.Generator, tok *tokenizer.Tokenizer) {
 		} else {
 			// Generate continuation
 			result := gen.GenerateWithPrompt(line)
-			fmt.Printf("Generated: %s\n", result)
+			if verbose {
+				fmt.Printf("Generated: %s\n", result)
+			} else {
+				fmt.Println(result)
+			}
 		}
 	}
 }
